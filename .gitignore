@@ -67,4 +67,5 @@ test.ttl
 *test.html
 *.lock
 *.json
+rknownApp.js
 node_modules/
