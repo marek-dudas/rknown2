@@ -370,6 +370,7 @@ var RView = function(config) {
             }
             internal.setData(model);
             internal.updateView();
+            setTimeout(internal.updateView.bind(internal), 300); //TODO this is dirty hack for reload after the lazy fonts arrive
         },
         getCanvas: function() {
             return internal.canvas;

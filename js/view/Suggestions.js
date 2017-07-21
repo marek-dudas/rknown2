@@ -76,6 +76,7 @@ var Suggestions = function(config) {
                 d3.select("#suggestionsWidget").style("display", "block");
             }
             else d3.select("#suggestionsWidget").style("display", "none");
+            d3.select("#searchingMore").style("display", "none");
             //$("#suggestionTable").bootstrapTable();
         },
     
@@ -114,6 +115,7 @@ var Suggestions = function(config) {
             suggestions.exit().remove();
             if (data.length > 0) d3.select("#suggestionsWidget").style("display", "block");
             else d3.select("#suggestionsWidget").style("display", "none");
+            d3.select("#searchingMore").style("display", "none");
             //$("#suggestionTable").bootstrapTable();
         },
         

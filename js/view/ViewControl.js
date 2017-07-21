@@ -37,10 +37,10 @@ var ViewControl = function() {
         predicateSel = PredicateSelection("#newPredicateField",MS),
         labelSel = LabelSelection(MS),
         
-        typeSuggestions = SuggestionsView({suggestionsElement: "suggestionTable", inputFieldId: "#typeField"}),
-        entitySuggestions = SuggestionsView({suggestionsElement: "suggestionTable", inputFieldId: "#newEntityField"}),
-        objectPropertySuggestions = SuggestionsView({suggestionsElement: "suggestionTable", inputFieldId: "#newPredicateField"}),
-        dataPropertySuggestions = SuggestionsView({suggestionsElement: "suggestionTable", inputFieldId: "#literalPredicateField"}),
+        typeSuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#typeField"}),
+        entitySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#newEntityField"}),
+        objectPropertySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#newPredicateField"}),
+        dataPropertySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#literalPredicateField"}),
         
         typeSugCtrl = SuggestionsCtrl(URIS.type, "#typeField", typeSuggestions.showTypes),
         entitySugCtrl = SuggestionsCtrl(URIS.object, "#newEntityField", entitySuggestions.showEntities),
@@ -55,6 +55,13 @@ var ViewControl = function() {
             predicateSel.show(false);
             nodeProps.hideNodeProperties();
             labelSel.hide();
+        },
+        
+        suggestionsConfig = function() {
+            PS.subscribe(M.entityInputKeyUp, entitySugCtrl.processKeyUp);
+            PS.subscribe(M.literalPredicateInputKeyUp, dataPropSugCtrl.processKeyUp);
+            PS.subscribe(M.typeInputKeyUp, typeSugCtrl.processKeyUp);
+            PS.subscribe(M.predicateInputKeyUp, objPropSugCtrl.processKeyUp);
         },
         
         defaultSubscriptions = function() {
@@ -82,11 +89,6 @@ var ViewControl = function() {
                 literalSel.showLiteralInput(MS.getSelectedNode(), valuation);
             });
     
-            PS.subscribe(M.entityInputKeyUp, entitySugCtrl.processKeyUp);
-            PS.subscribe(M.literalPredicateInputKeyUp, dataPropSugCtrl.processKeyUp);
-            PS.subscribe(M.typeInputKeyUp, typeSugCtrl.processKeyUp);
-            PS.subscribe(M.predicateInputKeyUp, objPropSugCtrl.processKeyUp);
-    
             PS.subscribe(M.linkCreated, function (msg, data) {
                 predicateSel.show(true);
             });
@@ -100,6 +102,7 @@ var ViewControl = function() {
         initAll = function() {
             initGraphControl();
             defaultSubscriptions();
+            suggestionsConfig();
         };
     
     

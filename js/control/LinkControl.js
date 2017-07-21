@@ -51,6 +51,7 @@ var LinkControl = function(sparqlFace, modelState) {
                 this.selectedNode.selected = false;
                 this.selectedNode = null;*/
                 PS.publish(M.linkCreated, this.creationLink);
+                PS.publish(M.modelChanged, model);
             }
             else if (this.linkStart != null) {
                 this.linkStart = null;
@@ -58,12 +59,15 @@ var LinkControl = function(sparqlFace, modelState) {
                 this.selectedNode.selected = false;
                 this.selectedNode = null;*/
                 model.removeLink(this.creationLink);
+                PS.publish(M.modelChanged, model);
             }
             if (node == null) {
-                if (this.creationLink != null) this.model.removeLink(this.creationLink);
+                if (this.creationLink != null) {
+                    model.removeLink(this.creationLink);
+                    PS.publish(M.modelChanged, model);
+                }
                 this.creationLink = null;
             }
-            PS.publish(M.modelChanged, model);
         },
     
         linkButtonClick: function(location){
