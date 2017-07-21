@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+    
+        <title>RKnown</title>
+        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous"> -->
+        
+        <!-- <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.0/bootstrap-table.min.css"> -->
+        
+        
+        <link href="bs/css/bootstrap.css" rel="stylesheet">
+    	<link href="bs/css/bootstrap-theme.min.css" rel="stylesheet">
+    	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.0/bootstrap-table.min.css">
+    	<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    	
+<link href='http://fonts.googleapis.com/css?family=Patrick+Hand&subset=latin,latin-ext' rel='stylesheet' type='text/css' />
+        <link rel="stylesheet" href="rknown.css">
+
+
+		<meta name="google-signin-scope" content="profile email">
+		<meta name="google-signin-client_id" content="756530396830-q4jskj4r11buuj41csvv0fmb62860596.apps.googleusercontent.com">
+		<script src="https://apis.google.com/js/platform.js" async defer></script>
+  		
+  		
+	</head>
+	<body>
+		<div class="container-fluid">
+		
+			<div class="row" id="rowGraphName">
+				<div class="col-xs-9 col-md-9">
+					<div class="panel panel-primary">
+						<div class="panel-heading">RKnown</div>
+						<div class="panel-body">				  
+						  <label for="modelNameField">Name of this document:</label>
+						  <input id="modelNameField">
+						  <button type="button" id="btnSave" class="btn btn-lg btn-primary">Save</button>
+                            <span class="hint">Name the document and hit Save before you start doing anything.</span>
+						  &nbsp; &nbsp;
+                            <label for="checkboxLearning">Learning view</label>
+						  <input type="checkbox" data-toggle="toggle" id="checkboxLearning">
+					  	</div>
+					</div>	
+				</div>
+
+				<div class="col-xs-3 col-md-3" id="divSignIn">
+					<div class="panel panel-default">
+						<div class="panel-heading">Please log-in with Google to work with the app:</div>
+						<div class="panel-body">
+							<div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+						</div>
+					</div>
+				</div>
+
+
+			</div>
+
+			<div class="row">
+				<div class="col-xs-12 col-md-12">
+					<div id="graphUrlMessage" class="alert alert-success alert-dismissable collapse">
+						<a href="#" class="close" onclick="$('#graphUrlMessage').hide()">×</a>
+						<strong>Here is the URL for sharing the graph:</strong>
+						<p id="graphUrlP"></p>
+					</div>
+				</div>
+			</div>
+			
+			<div class="row">
+			   <div class="col-xs-12 col-md-8" id="divCanvas">
+					<div class="panel panel-primary">
+						<div class="panel-heading" id="canvasHeading">
+							<table width="100%">
+								<tr>
+									<td>
+							Your sketch: <span class="hint">Double-click the canvas to add a new thing.</span>
+									</td>
+									<td>
+										<label for="textSearchField">Search</label>
+										<input type="text" id="textSearchField" style="color:black">
+									</td>
+									<td align="right">
+								<label for="checkboxFullscreen">Fullscreen</label>
+								<input type="checkbox" data-toggle="toggle" id="checkboxFullscreen"></td>
+								</tr>
+							</table>
+						</div> 
+						<div class="panel-body" id="canvas" style="padding:0px"> </div>
+					</div>	
+				</div>
+				<div class="col-xs-12 col-md-2" id="divSuggestions">
+					<div class="panel panel-default">
+						<div class="panel-heading">Suggestions</div> 
+						<div class="panel-body" id="suggestions" style="padding:0px"> </div>
+					</div>    
+				</div>
+				<div class="col-xs-12 col-md-2" id="divGraphs">
+			    	<div class="panel panel-default">
+						<div class="panel-heading">Your other sketches</div> 
+						<div class="panel-body" id="graphs"> </div>
+					</div>
+				</div>	    
+		    </div>
+		    
+		    <div class="row" id="rowAttributions">
+		    	<div class="col-xs-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">Attributions</div> 
+						<div class="panel-body">
+							Icons CC BY <a href="http://glyphicons.com">glyphicons.com</a>
+						</div>
+					</div>    
+				</div>
+		    </div>
+	    </div>
+
+		<div class="popover" id="newEntityWidget">
+				<h3 class="popover-title">Add new item to canvas</h3>
+				<div class="popover-content">
+					<label for="newEntityField">Name of the item: </label>
+					<input id="newEntityField"> <br/>
+					<span class="hint">Hit enter or choose from suggestions</span>
+				</div>
+		</div>
+
+		<div class="popover" id="entityLabelWidget">
+			<h3 class="popover-title">Add or change the name</h3>
+			<div class="popover-content">
+				<label for="entityLabelField">Name</label>
+				<input id="entityLabelField"> <br/>
+				<label></label>
+				<input id="labelLangField">
+				<button type="button" id="saveLabelButton" class="btn btn-lg btn-primary">Save</button>
+			</div>
+		</div>
+
+	    <div class="popover" style="max-width: 30%; z-index:2;"
+    		 id="propertiesWidget" class="settingsPopUp">
+    		 <div class="popover-content">
+				 <table id="labelsTable" class="table-striped">
+				 </table>
+				 <button type="button" id="addLabelButton" class="btn btn-lg btn-primary">Add Label</button>
+				 <table id="typesTable" class="table-striped">
+				 </table>
+    		 		<table id="propertiesTable" class="table-striped">
+    		 		</table>
+    		 </div>
+	    </div>
+
+		<div class="popover" style="max-width: 30%"
+			 id="typesWidget" class="settingsPopUp">
+			<div class="popover-content">
+				<table id="typesTable-old" class="table-striped">
+				</table>
+			</div>
+		</div>
+	    
+		<div class="popover" style="left:500px; top:200px;"
+    		 id="predicateSelection" class="settingsPopUp">
+    		 		<h3 class="popover-title">Name of the relation: </h3>
+    		 		<div class="popover-content"><input id="newPredicateField"></div>
+	    </div>
+	    
+	    <div class="popover" style="left:500px; top:200px;"
+    		 id="typeSelection">
+    		 		<h3 class="popover-title">What kind of thing is this?: </h3>
+    		 		<div class="popover-content"><input id="typeField"></div>
+	    </div>
+	    
+	    <div class="popover" style="z-index:9999; max-width: 100%; max-height: 100%;"
+    		 id="webInfo" class="settingsPopUp">
+    		 		<iframe id="webFrame" width="100%" height="100%"></iframe>
+	    </div>
+	    
+	    <div class="popover" style="max-width: 100%;"
+    		 id="literalInput" class="settingsPopUp">
+    		 <div class="popover-content">
+    		 		What kind of information are you adding?: <br/>
+    		 		<input id="literalPredicateField"> <br/>
+    		 		Now enter the information: <br/>
+    		 		<textarea id="literalValue"></textarea> <br/>
+    		 		<button type="button" id="saveLiteral" class="btn btn-lg btn-primary">Save</button>
+    		 </div>
+	    </div>
+	    
+	    <div class="popover" style="z-index:9999"
+    		 id="suggestionsWidget" class="settingsPopUp">
+    		 <div class="popover-content">
+    		 		<table id="suggestionTable" class="table-hover">
+    		 		</table>
+				 	<div id="searchingMore">
+						Searching for more suggestions...
+					</div>
+    		 </div>
+	    </div>
+	    
+	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js" integrity="sha384-XTs3FgkjiBgo8qjEjBk0tGmf3wPrWtA6coPfQDfFEY8AnYJwjalXCiosYRBIBZX8" crossorigin="anonymous"></script>
+ 		<script src="bs/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.0/bootstrap-table.min.js"></script>
+		<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+  		<script src="http://cdnjs.cloudflare.com/ajax/libs/jsonld/0.3.15/jsonld.js"></script>
+		<script src="external/jscolor.js"></script>
+
+		<script type="text/javascript">
+
+            /*$(function () {
+                $(document.body).popover({
+                    container: 'body'
+                })
+                $(".table-striped").bootstrapTable();
+                $("#suggestionTable").bootstrapTable();
+            })*/
+
+
+
+            //RKnown.go('canvas', 'suggestions', 'newEntityField', 'modelNameField', 1100, 900);
+		</script>
+
+		<script src="rknownApp.js"></script>
+
+	</body>
+	
+</html>
+	    
+	  	

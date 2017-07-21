@@ -1,0 +1,62 @@
+	    text {
+		 font-family: 'Patrick Hand',monospace;
+		  font-size: 18px;
+		  font-weight: bold;
+		  text-anchor: middle;
+		  pointer-events: none;
+		}
+
+		.hint {
+			font-style: italic;
+		}
+		
+		.relationNode {
+		  opacity: 0.7;
+		}
+				
+		.node path {
+			fill: #ddd;
+			cursor: pointer;
+			stroke: #777;
+			stroke-width: 2px;
+		}		
+		
+		.relationNode path {
+			fill: #eee;
+			cursor: pointer;
+			stroke: #aaa;
+			stroke-width: 2px;
+		}	
+		
+		path.selected {
+			fill: #eee !important;
+		}
+		
+		.selected path {
+			fill: #eee !important;
+		}
+		
+		.node path:hover {
+			fill: #eee;
+		}
+		
+		.linklabelholder path {
+			opacity: 0.0;
+		}
+		
+		.linklabel {
+			font-size: 18px;
+			background-color: #fff;
+		}
+		
+		.typelabel text {
+			fill: #cccccc;
+		}
+		
+		.valuationProperty {
+			font-weight: bold;
+			padding-right: 20px;
+		}
+		
+		   
+		   
