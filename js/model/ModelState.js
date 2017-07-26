@@ -18,6 +18,7 @@ var ModelState = (function() {
             userMail = null,
             learning = false,
             selNodeElement = null,
+            linkCreationInProgress = false,
             model,
             nodeSelection = function nodeSelection(msg, data) {
                 for(var i=0; i<model.nodes.length; i++){
@@ -29,13 +30,14 @@ var ModelState = (function() {
                 }
                 selectedNode = data.node;
                 selNodeElement = data.nodeElement;
-                //PS.publish(M.modelChanged);
+                PS.publish(M.modelChanged);
             },
             canvasClick = function canvasClick(msg, location) {
-                if(blankNode != null) nodeSelection(null, {node:null, nodeElement:null});
+                //if(blankNode != null)
+                nodeSelection(null, {node:null, nodeElement:null});
             },
-            dblClick = function dblClick(msg, location) {
-                newNodeLocation = location;
+            dblClick = function dblClick(msg, data) {
+                newNodeLocation = {x: data.canvasMouse[0], y: data.canvasMouse[1]};
             },
             learningChange = function(msg, isSet) {
                 learning = isSet;
@@ -54,15 +56,14 @@ var ModelState = (function() {
             getSelectedLabel: function getSelectedLabel() {
                 return selectedLabel;
             },
+            isLinkCreation: function isLinkCreation() {
+                return linkCreationInProgress;
+            },
+            setLinkCreation: function(value) {
+                linkCreationInProgress = value;
+            },
             isLearning: function isLearning() {
                 return learning;
-            },
-            mouseMove: function(msg, location) {
-                if(blankNode != null && linkStart != null) {
-                    blankNode.x = location[0];
-                    blankNode.y = location[1];
-                    PS.publish(M.modelChanged);
-                }
             },
             setUser: function(email, token) {
                 userToken = token;

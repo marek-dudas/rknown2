@@ -23,10 +23,18 @@ var LinkControl = function(sparqlFace, modelState) {
     
         addRelationLink: function () {
             model.addRelationLink(this.creationLink);
-            model.removeLink(this.creationLink);
-            this.creationLink = null;
+            internal.reset();
         }
         ,
+        
+        reset: function () {
+            if(this.creationLink != null) {
+                model.removeLink(this.creationLink);
+                this.creationLink = null;
+            }
+            this.linkStart = null;
+            ms.setLinkCreation(false);
+        },
     
         setPredicateNameFromField: function (enteredName) {
             if (enteredName != "") {
@@ -76,21 +84,32 @@ var LinkControl = function(sparqlFace, modelState) {
                     this.blankNode = Object.create(Node);
                     this.blankNode.init("", "");
                     this.blankNode.visible = false;
-                    this.blankNode.x = location.x;
-                    this.blankNode.y = location.y;
                     model.addNode(this.blankNode);
                     ms.setBlankNode(this.blankNode);
                 }
+                this.blankNode.x = location.x;
+                this.blankNode.y = location.y;
                 this.linkStart = ms.getSelectedNode();
                 this.creationLink = Object.create(Link);
                 this.creationLink.init(this.linkStart, this.blankNode, "", "");
-                this.model.addLink(this.creationLink);
+                model.addLink(this.creationLink);
+                ms.setLinkCreation(true);
+            }
+        },
+    
+        mouseMove: function(location) {
+            if(this.blankNode != null && this.linkStart != null) {
+                this.blankNode.x = location[0];
+                this.blankNode.y = location[1];
+                PS.publish(M.modelChanged);
             }
         },
         
         subscribe: function() {
            PS.subscribe(M.modelReset, function(msg, newModel){
                model = newModel;
+               internal.blankNode = null;
+               internal.reset();
            });
            PS.subscribe(M.nodeMouseDown, function(msg, data) {
                internal.nodeClicked(data.node);
@@ -99,6 +118,20 @@ var LinkControl = function(sparqlFace, modelState) {
                var selNode = ms.getSelectedNode();
                internal.linkButtonClick({x:selNode.x+selNode.width+30, y:selNode.y});
            });
+           PS.subscribe(M.canvasMouseDown, function() {
+               internal.reset();
+           });
+           
+           PS.subscribe(M.canvasMouseMove, function(msg, location) {
+               internal.mouseMove(location);
+           });
+           
+           PS.subscribe(M.predicateInputEnter, function(msg, data) {
+               internal.setPredicateNameFromField(data);
+           });
+           PS.subscribe(M.suggestionPropertySelect, function(msg, data) {
+               internal.predicateSelected(data);
+           })
         },
         
         init: function() {

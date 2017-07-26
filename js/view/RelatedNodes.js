@@ -6,20 +6,20 @@ var d3 = require('d3');
 var PS = require('pubsub-js');
 var M = require('../vocab/messages');
 
-var RelatedNodes = function(viewCanvas, width, height) {
+var RelatedNodes = function(viewCanvas, _mainCanvas, width, height) {
     var relatedCanvas = d3.select("#" + viewCanvas),
-        relatedSvg = relatedCanvas.append("svg").attr("width", width)
-            .attr("height", height),
-        relatedNodes = relatedSvg.append("svg:g").selectAll("g"),
-        relatedNodesArray = [],
+        mainCanvas = _mainCanvas,
+        relatedSvg = relatedCanvas.append("svg").attr("width", width).attr("height", height),
+        relatedNodesGroup = relatedSvg.append("svg:g"), //.selectAll("g"),
+        nodesArray = [],
         model,
         dragSvg,
         draggedNode = null,
-        
-        getRelatedSvgWidth = function getRelatedSvgWidth() {
-            return relatedSvg.node().getBoundingClientRect().width;
-        },
     
+        getNodesD3 = function getNodesD3() {
+            return relatedNodesGroup.selectAll("g");
+        },
+
         setDraggedNode = function (node) {
             draggedNode = node.copy();
         
@@ -34,7 +34,7 @@ var RelatedNodes = function(viewCanvas, width, height) {
         
             var button = dragButton.append("path").attr("d", node.getPathData());
         
-            this.dragButton.append("text").text(node.name)
+            dragButton.append("text").text(node.name)
                 .attr("text-anchor", "middle")
                 .attr("x", "0") //width/2+5)
                 .attr("y", "0")
@@ -54,18 +54,52 @@ var RelatedNodes = function(viewCanvas, width, height) {
             function mouseup() {
                 w.on("mousemove", null).on("mouseup", null);
                 dragSvg.remove();
-                PS.publish(M.relNodePlaced, {location: d3.mouse(svg.node()), placedNode: draggedNode});
+                PS.publish(M.relNodePlaced, {location: d3.mouse(mainCanvas.node()), placedNode: draggedNode});
                 //RKnown.control.putRelatedNode(d3.mouse(RKnown.view.svg.node()));
             }
         },
+            
+        nodeInArray = function nodeInArray(node) {
+            for(var i=0; i<nodesArray.length; i++) {
+                if(nodesArray[i].uri == node.uri) return true;
+            }
+            return false;
+        },
+            
+        storeNodes = function storeNodes(nodes) {
+            for(var i=0; i<nodes.length; i++) {
+                if(!nodeInArray(nodes[i])) nodesArray.push(nodes[i]);
+            }
+        },
+        
+        getWidth = function getWidth() {
+            return relatedSvg.node().getBoundingClientRect().width;
+        },
+        
+        layoutNodes = function layoutNodes() {
+            var x =0 ,y =0, n;
+            for (var i=0; i<nodesArray.length; i++) {
+                n = nodesArray[i];
+                x+=n.width/2;
+                if(y<=0) y = n.height/2;
+                if(x + n.width/2 > getWidth()) {
+                    x = n.width/2;
+                    y += n.height;
+                }
+                n.x = x;
+                n.y = y;
+                x += n.width/2;
+            }
+            getNodesD3().data(nodesArray, function(d){return d.uri}).attr('transform', function (d) {
+                return 'translate( ' + d.x + ', ' + d.y + ')';
+            });
+        },
         
         updateRelated = function updateRelated(nodesData) {
-            relatedNodes = relatedNodes.data(nodesData);
+            storeNodes(nodesData);
+            var relatedNodes = getNodesD3().data(nodesArray, function(d){return d.uri});
             var nodesEnter = relatedNodes.enter().append("g")
                 .classed("node", true)
-                .attr('transform', function (d) {
-                    return 'translate( ' + d.x + ', ' + d.y + ')';
-                })
                 .on("mousedown", function (d) {
                     //RKnown.control.relatedNodeMouseDown(d);
                     //PS.publish(M.relNodeMouseDown, d);
@@ -93,9 +127,9 @@ var RelatedNodes = function(viewCanvas, width, height) {
             //this.nodes.selectAll(".nodename").text(function(d) {return d.name;});
             
             relatedNodes.exit().remove();
+            layoutNodes();
         },
         subscribe = function() {
-    
             PS.subscribe(M.modelReset, function(msg, data) {model = data;});
         };
     
@@ -103,6 +137,7 @@ var RelatedNodes = function(viewCanvas, width, height) {
         
     
     return {
+        /*
         newRelatedNodes: function(msg, nodes) {
             var x=RSettings.nodeWidth/2;
             var y=RSettings.nodeHeight;
@@ -129,13 +164,14 @@ var RelatedNodes = function(viewCanvas, width, height) {
                 }
             }
             updateRelated();
-        },
+        },*/
         modelReset: function modelReset(msg, newModel) {
             model = newModel;
         },
         updateSize: function updateSize(height) {
             var currentSize = relatedCanvas.node().getBoundingClientRect();
             relatedSvg.attr("width", currentSize.width).attr("height", height);
+            layoutNodes();
         },
         processNodes: function processNodes(msg, nodes) {
             updateRelated(nodes);

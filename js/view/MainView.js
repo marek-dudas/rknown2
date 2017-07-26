@@ -6,6 +6,9 @@ var PS = require('pubsub-js');
 var UriTools = require('../model/Uri');
 var M = require('../vocab/messages');
 var ViewUtils = require('./ViewUtils');
+var $ = require('jquery-browserify');
+var bt = require('bootstrap-toggle');
+var appSettings = require('../settings/appSettings');
 
 var RView = function(config) {
     var svg,
@@ -59,23 +62,23 @@ var RView = function(config) {
                 .attr('stdDeviation', 3);
         
             this.rootSvg = this.svg;
-        
+    
+            svg = this.svg = this.svg.append("svg:g");
+            
             this.rootSvg.on("mousemove", function () {
                 //RKnown.control.mouseMove(d3.mouse(RKnown.view.svg.node()));
-                PS.publish(M.canvasMouseMove, d3.mouse(this));
+                PS.publish(M.canvasMouseMove, d3.mouse(svg.node()));
             });
             this.rootSvg.on("click", function () {
                     //var mouseDown = RKnown.control.canvasMouseDown.bind(RKnown.control);
                     //mouseDown(d3.mouse(this), null);
-                    PS.publish(M.canvasMouseDown, d3.mouse(this));
+                    PS.publish(M.canvasMouseDown, d3.mouse(svg.node()));
                 })
                 .on("dblclick", function () {
                     //RKnown.control.dblClick(d3.mouse(RKnown.view.svg.node()));
-                    PS.publish(M.canvasDblClick, d3.mouse(this));
+                    PS.publish(M.canvasDblClick, {canvasMouse: d3.mouse(svg.node()), windowMouse: d3.mouse(document.body)});
                 });
-    
-            svg = this.svg = this.svg.append("svg:g");
-        
+         
             this.nodesGroup = this.svg.append("svg:g");
             this.edgesGroup = this.svg.append("svg:g");
         
@@ -91,18 +94,14 @@ var RView = function(config) {
         
             this.canvas = this.svg.append("svg:g");
         
-            $("#checkboxLearning").on("change", this.learningStateChanged.bind(this));
-            $("#checkboxFullscreen").on("change", this.fullscreenChanged.bind(this));
+            $('#checkboxLearning').on('change', this.learningStateChanged.bind(this));
+            $('#checkboxFullscreen').change(this.fullscreenChanged.bind(this));
     
             $('#textSearchField').keyup(function(e){
                 if(e.keyCode == 13) {
                     PS.publish(M.nodeSearchEnter, ($(this).val()));
                 }
             });
-        
-            window.addEventListener('resize', this.updateSize.bind(this));
-        
-            window.addEventListener('load', this.updateSize.bind(this));
         
             this.last_touch_time = undefined;
         },
@@ -114,6 +113,8 @@ var RView = function(config) {
             var height = $(window).height() - currentSize.top - headerHeight - 5;
         
             view.rootSvg.attr("width", currentSize.width).attr("height", height);
+            this.width = currentSize.width;
+            this.height = height;
             
             return height;
         },
@@ -141,8 +142,8 @@ var RView = function(config) {
     
         learningStateChanged: function () {
             this.layoutRunning = this.learningStateSet();
-            this.updateView();
-            PS.publish(M.learningChanged, this.learningStateSet())
+            this.updateLayout();
+            PS.publish(M.learningChanged, this.learningStateSet());
         },
     
         touchstart: function () {
@@ -150,7 +151,7 @@ var RView = function(config) {
             if (touch_time - last_touch_time < 500 && d3.event.touches.length === 1) {
                 d3.event.stopPropagation();
                 this.last_touch_time = undefined;
-                PS.publish(M.canvasDblClick, d3.mouse(svg.node()));
+                PS.publish(M.canvasDblClick, {canvasMouse: d3.mouse(svg.node()), windowMouse: d3.mouse(document.body)});
                 //RKnown.control.dblClick(d3.mouse(d3.mouse(RKnown.view.svg.node())));
             }
             this.last_touch_time = touch_time;
@@ -171,16 +172,17 @@ var RView = function(config) {
     
         startLayout: function () {
             this.tickCounter = 0;
-            if (this.layout == null) this.resetLayout();
+            //if (this.layout == null)
+            this.resetLayout();
             this.layout.restart();
         },
     
         resetLayout: function () {
             if (this.layout != null) this.layout.stop();
             this.layout = d3.forceSimulation(this.model.nodes)
-                .force("links", d3.forceLink(this.model.links))
-                .force("charge", d3.forceManyBody())
-                .force("center", d3.forceCenter())
+                .force("links", d3.forceLink(this.model.links).distance(appSettings.layout_linkDistance))
+                .force("charge", d3.forceManyBody().strength(appSettings.layout_charge))
+                .force("center", d3.forceCenter(this.width/2, this.height/2))
                 .on("tick", this.tick.bind(this));
         },
     
@@ -274,7 +276,7 @@ var RView = function(config) {
             function dragend(d, i) {
                 d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
                 view.tick();
-                if (view.layoutRunning) view.layout.resume();
+                if (view.layoutRunning) view.layout.restart();
             }
         
             var nodesEnter = this.nodes.enter().append("g")
@@ -351,17 +353,23 @@ var RView = function(config) {
         
             this.nodes.exit().remove();
         
+            //if (this.layoutRunning) this.startLayout();
+            //else
+            if (!this.layoutRunning && this.layout != null) this.layout.stop();
+            this.tick();
+        },
+        updateLayout: function updateLayout() {
             if (this.layoutRunning) this.startLayout();
             else if (this.layout != null) this.layout.stop();
-            this.tick();
         }
+        
     };
     
     internal.init(config.viewingElement, config.width, config.height);
     
     return {
         modelChanged: function modelChanged(msg, model) {
-            internal.updateView();
+            if(internal.model != null) {internal.updateView();}
         },
         modelReset: function modelReset(msg, model) {
             if(internal.model != null) {
@@ -375,12 +383,16 @@ var RView = function(config) {
         getCanvas: function() {
             return internal.canvas;
         },
+        updateLayout: function() {
+            internal.updateLayout();
+        },
         subscribe: function() {
             PS.subscribe(M.modelChanged, this.modelChanged);
             PS.subscribe(M.modelReset, this.modelReset);
+            PS.subscribe(M.nodelinkChanged, this.updateLayout);
         },
         updateSize: function() {
-            internal.updateSize();
+            return internal.updateSize();
         }
     };
 };

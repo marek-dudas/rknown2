@@ -6,11 +6,9 @@ var uriTool = require('./Uri.js');
 var Geometry = require('./Geometry.js');
 var URIS = require('../vocab/uris');
 var RSettings = require('../settings/appSettings');
-
-function Point(x,y) {
-    this.x = x;
-    this.y = y;
-};
+var PS = require('pubsub-js');
+var M = require('../vocab/messages');
+var Point = require('../model/Point');
 
 function Line(start, end) {
     this.start = start;
@@ -34,10 +32,11 @@ var Node = {
         this.name = name;
         this.updateDimensions();
         this.searchHighlight = false;
-        if(typeof name.then !== 'undefined') name.then(this.setName.bind(this));
         this.labels = [];
-        var label = Label(name);
-        this.addLabel(label);
+        Promise.resolve(name).then(this.setName.bind(this));
+        if(typeof name.then !== 'undefined') {
+            this.name = uriTool.nameFromUri(this.uri);
+        }
     },
 
     updateDimensions: function() {
@@ -53,6 +52,9 @@ var Node = {
 
     setName: function(name) {
         this.name = name;
+        if(this.labels.length==0) {
+            this.addLabel(Label(name));
+        }
     },
 
     addType: function(type) {
@@ -61,7 +63,10 @@ var Node = {
         if(typeExists == false && this.types.length == 0 && this.color == RSettings.defaultNodeColor) {
             this.setMainType(type);
         }
-        if(typeExists == false) this.types.push(type);
+        if(typeExists == false) {
+            this.types.push(type);
+            PS.publish(M.modelChanged);
+        }
     },
 
     getColor: function() {

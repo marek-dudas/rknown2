@@ -27,7 +27,7 @@ var ViewControl = function() {
     var MS = ModelState.getInstance(),
         graphList = GraphList(),
         mainView = MainView({viewingElement: 'canvas', width: 1100, height: 900}),
-        relNodesView = RelatedNodes('suggestions', 300, 900),
+        relNodesView = RelatedNodes('suggestions', mainView.getCanvas(), 300, 900),
         nodeProps = NodeProperties(MS),
         nodeButtons = NodeButtons(mainView.getCanvas()),
         
@@ -37,10 +37,10 @@ var ViewControl = function() {
         predicateSel = PredicateSelection("#newPredicateField",MS),
         labelSel = LabelSelection(MS),
         
-        typeSuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#typeField"}),
-        entitySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#newEntityField"}),
-        objectPropertySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#newPredicateField"}),
-        dataPropertySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#literalPredicateField"}),
+        typeSuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#typeField", parent: typeSel}),
+        entitySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#newEntityField", parent: entitySel}),
+        objectPropertySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#newPredicateField", parent: predicateSel}),
+        dataPropertySuggestions = SuggestionsView({suggestionsElement: "#suggestionTable", inputFieldId: "#literalPredicateField", parent:literalSel}),
         
         typeSugCtrl = SuggestionsCtrl(URIS.type, "#typeField", typeSuggestions.showTypes),
         entitySugCtrl = SuggestionsCtrl(URIS.object, "#newEntityField", entitySuggestions.showEntities),
@@ -55,6 +55,15 @@ var ViewControl = function() {
             predicateSel.show(false);
             nodeProps.hideNodeProperties();
             labelSel.hide();
+            typeSuggestions.hide();
+            entitySuggestions.hide();
+            objectPropertySuggestions.hide();
+            dataPropertySuggestions.hide();
+        },
+        
+        updateSize = function() {
+            var height = mainView.updateSize();
+            relNodesView.updateSize(height);
         },
         
         suggestionsConfig = function() {
@@ -70,9 +79,11 @@ var ViewControl = function() {
             PS.subscribe(M.graphListChanged, graphList.updateGraphList);
             PS.subscribe(M.relNodesChanged, relNodesView.processNodes);
     
-            PS.subscribe(M.nodeMouseOver, nodeProps.showNodeProperties);
-            PS.subscribe(M.nodeMouseOver, function (msg, data) {
-                nodeButtons.show({x: data.node.x + 60, y: data.node.y});
+            PS.subscribe(M.nodeMouseOver, function(msg, data) {
+                if(MS.isLinkCreation() == false) {
+                    nodeProps.showNodeProperties(msg, data);
+                    nodeButtons.show({x: data.node.x + 60, y: data.node.y});
+                }
             });
             PS.subscribe(M.canvasMouseDown, hideAllPopups);
             PS.subscribe(M.selNodeDeleted, hideAllPopups);
@@ -88,10 +99,17 @@ var ViewControl = function() {
             PS.subscribe(M.btnEditValuation, function (msg, valuation) {
                 literalSel.showLiteralInput(MS.getSelectedNode(), valuation);
             });
+            PS.subscribe(M.btnNodeLink, function() {
+                hideAllPopups();
+            });
     
             PS.subscribe(M.linkCreated, function (msg, data) {
                 predicateSel.show(true);
             });
+        
+            window.addEventListener('resize', updateSize);
+    
+            window.addEventListener('load', updateSize);
         },
         
         initGraphControl = function() {
@@ -111,10 +129,7 @@ var ViewControl = function() {
         updateMainView: function() {
             mainView.modelChanged();
         },
-        updateSize: function() {
-            var height = mainView.updateSize();
-            relNodesView.updateSize(height);
-        }
+        updateSize: updateSize
     }
 };
 

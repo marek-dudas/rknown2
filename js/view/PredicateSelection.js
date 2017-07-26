@@ -21,7 +21,7 @@ var PredicateSelection = function(inputFieldId, modelState) {
         }
     };
     var init = function() {
-        $(this.predicateInputFieldId).keyup(function(e){
+        $(inputField).keyup(function(e){
             if(e.keyCode == 13)
             {
                 PS.publish(M.predicateInputEnter, $(inputField).val());
@@ -36,6 +36,8 @@ var PredicateSelection = function(inputFieldId, modelState) {
             show(false);
         });
     };
+    
+    init();
     
     return {
         show: show

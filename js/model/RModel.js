@@ -7,6 +7,8 @@ var Node = require('./RNode.js');
 var UriTools = require('./Uri.js');
 var URIS = require('../vocab/uris.js');
 var RSettings = require('../settings/appSettings');
+var PS = require('pubsub-js');
+var M = require('../vocab/messages');
 
 var RModel = {
     init: function(graphUri) {
@@ -15,8 +17,6 @@ var RModel = {
         this.relations = [];
         this.idCounter = 10;
         this.name = "";
-        this.oldId = null;
-        this.vocabs = [];
         this.created = Date.now();
         this.types = [];
         this.typeColors = d3.scaleOrdinal(d3.schemeCategory10);
@@ -53,14 +53,15 @@ var RModel = {
         var node = Object.create(Node);
         node.init(uri, label);
         if(location) {
-            node.x = location[0];
-            node.y = location[1];
+            node.x = location.x;
+            node.y = location.y;
         }
         else {
             node.x = this.newNodeLocation[0];
             node.y = this.newNodeLocation[1];
         }
         this.addNode(node);
+        
         return node;
     },
 
@@ -68,6 +69,8 @@ var RModel = {
         if(this.getNodeByUri(node.uri) == null) {
             node.id = this.idCounter++;
             this.nodes.push(node);
+            PS.publish(M.nodelinkChanged, this);
+            PS.publish(M.modelChanged, this);
         }
     },
 
@@ -76,6 +79,8 @@ var RModel = {
         link.init(from, to, "<http://rknown.com/RKnownLink>", "");
         link.id = this.idCounter++;
         this.links.push(link);
+        PS.publish(M.nodelinkChanged, this);
+        PS.publish(M.modelChanged, this);
     },
 
     removeNode: function(node) {
@@ -88,12 +93,14 @@ var RModel = {
                 }
             }
             this.nodes.splice(this.nodes.indexOf(node), 1);
+            PS.publish(M.modelChanged, this);
         }
     },
 
     removeLink: function(link) {
         var index = this.links.indexOf(link);
         if(index>=0) this.links.splice(this.links.indexOf(link),1);
+        PS.publish(M.modelChanged, this);
         //this.updateBTypeLevels();
     },
 
@@ -113,6 +120,8 @@ var RModel = {
     addLink: function(link) {
         link.id = this.idCounter++;
         this.links.push(link);
+        PS.publish(M.nodelinkChanged, this);
+        PS.publish(M.modelChanged, this);
     },
 
     addRelationLink: function(link) {
@@ -132,6 +141,7 @@ var RModel = {
         this.addSimpleLink(link.from, linkNode);
         this.addSimpleLink(linkNode, link.to);
         this.relations.push(link);
+        PS.publish(M.modelChanged, this);
     },
 
     getNodeById: function(id) {

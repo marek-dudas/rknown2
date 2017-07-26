@@ -1,3 +1,5 @@
+var URIS = require('../vocab/uris');
+
 var PathPlaceholder = {
 		init: function(s, p, o) {
 			this.s = s;
@@ -19,7 +21,7 @@ var PathPlaceholder = {
 };
 
 var PathBuilder = {
-		init: function(a, b, steps, reverseAt) {
+		init: function(a, b, steps, reverseAt, sparqlFace) {
 			this.i = 1;
 			this.limit = 10;
 			this.query = "SELECT * WHERE {"; 
@@ -29,8 +31,9 @@ var PathBuilder = {
 			this.objects = [];
 			this.links = [];
 			this.processed = false;
-			this.build(steps, reverseAt);
 			this.pathFound = false;
+			this.sparqlFace = sparqlFace;
+            this.build(steps, reverseAt);
 		},
 		addStep: function(isEnd, reverse1) {
 			var thisEnd = (isEnd)?(this.bigEnd):("?o"+(this.i));
@@ -64,7 +67,7 @@ var PathBuilder = {
 			for(var i=1; i<=steps; i++) {
 				this.addStep(i==steps, i>=reverseAt);
 			}
-			SparqlFace.query(this.query, this.processResults.bind(this));
+			this.sparqlFace.query(this.query, this.processResults.bind(this));
 		},
 		processResults: function(json) {
 			for(var j=0; j<json.results.bindings.length; j++) {
@@ -75,7 +78,7 @@ var PathBuilder = {
 				}
 			}
 			this.processed = true;
-			SparqlFace.pathBuilderProcessed();
+            this.sparqlFace.pathBuilderProcessed();
 		}		
 };
 

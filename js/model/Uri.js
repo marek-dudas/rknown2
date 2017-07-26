@@ -6,7 +6,7 @@ var Uri = {
         return uri.replace(/[<>]/g, "");
     },
     nameFromUri: function(uri) {
-        return uri.match("[^\/#]+$");
+        return uri.match("[^\/#]+$")[0];
     }
 }
 

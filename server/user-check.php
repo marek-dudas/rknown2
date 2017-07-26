@@ -132,6 +132,12 @@ class UserValidator {
 		sesameSendUpdate($recordGraphQuery, $user_update_endpoint);
 	}
 	
+	function deleteGraphRecord($graph) {
+		global $user_update_endpoint;
+		$delGraphQuery = "DELETE WHERE { $graph ?property ?value . } ";
+		sesameSendUpdate($delGraphQuery, $user_update_endpoint);
+	}
+	
 	function isOperationForValidGraph($query) {
 		$this->validateToken($_REQUEST["token"]);
 		$output_array = null;
@@ -145,7 +151,9 @@ class UserValidator {
 		
 		if(preg_match("/^CLEAR/i", $query)===1) {
 			if($this->graphExists($graph)) {
-				return $this->userOwnsGraph($graph);
+				$isOwner = $this->userOwnsGraph($graph);
+				if($isOwner) $this->deleteGraphRecord($graph);
+				return $isOwner;
 			}
 			else return true;		
 		}

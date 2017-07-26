@@ -6,11 +6,16 @@ var $ = require('jquery-browserify');
 
 var LabelSelection = function(modelState) {
     var ms = modelState;
+    var self;
+    var isVisible = false;
     var hide = function hide() {
         d3.select('#entityLabelWidget')
             .style("display", "none");
+        isVisible = false;
+        PS.publish(M.windowClosed, self);
     };
     var showLabelInput = function showLabelInput(node, label) {
+        isVisible = true;
         d3.select('#entityLabelWidget')
             .style("display", "block")
             .style("left", node.x + "px")
@@ -42,10 +47,14 @@ var LabelSelection = function(modelState) {
     
     init();
     
-    return {
+    self = {
         show: showLabelInput,
-        hide: hide
-    }
+        hide: hide,
+        visible: function() {
+            return isVisible;
+        }
+    };
+    return self;
 };
 
 module.exports = LabelSelection;

@@ -6,7 +6,8 @@
 
 var UriTools = require('../model/Uri.js');
 var SPARQL = require('./sparql.js');
-var RSettings = require('../settings/connectionSettings.js');
+var ConnSettings = require('../settings/connectionSettings.js');
+var AppSettings = require('../settings/appSettings');
 var URIS = require('../vocab/uris.js');
 var RType = require('../model/RType.js');
 var RModel = require('../model/RModel.js');
@@ -20,6 +21,7 @@ var MS = require('../model/ModelState');
 
 var SparqlFace = function() {
     var userToken = MS.getInstance().getUserToken();
+    var textSearchRuns = -1;
     function getAllBindings(json, placeholder) {
         var results = [];
         for (var j = 0; j < json.results.bindings.length; j++) {
@@ -29,18 +31,23 @@ var SparqlFace = function() {
         return results;
     }
     
+    var incrementTextSearchCounter = function resetTextSearchCounter() {
+        textSearchRuns++;
+        if (textSearchRuns > 1) textSearchRuns = -1;
+    };
+    
     var internal = {
          config: function () {
             this.queryService = Object.create(SPARQL);
-            this.queryService.Service(RSettings.sparqlProxy, RSettings.sparqlEndpoint);
+            this.queryService.Service(ConnSettings.sparqlProxy, ConnSettings.sparqlEndpoint);
             this.queryService.setMethod('GET');
             this.queryService.setToken(userToken);
             this.externalService = Object.create(SPARQL);
-            this.externalService.Service(RSettings.sparqlProxy, RSettings.externalEndpoint);
+            this.externalService.Service(ConnSettings.sparqlProxy, ConnSettings.externalEndpoint);
             this.externalService.setMethod('GET');
             this.externalService.setToken(userToken);
             this.userDbService = Object.create(SPARQL);
-            this.userDbService.Service(RSettings.sparqlProxy, RSettings.userDbEndpoint);
+            this.userDbService.Service(ConnSettings.sparqlProxy, ConnSettings.userDbEndpoint);
             this.userDbService.setMethod('GET');
             this.userDbService.setToken(userToken);
             this.textSearchRuns = -1;
@@ -79,7 +86,11 @@ var SparqlFace = function() {
                 "}";
             this.query(query, this.saveTypesAndContinue.bind(this));
         },
-    
+        newGraph: function() {
+            this.model = Object.create(RModel);
+            this.model.init("unnamed");
+            PS.publish(M.modelReset, this.model);
+        },
         saveTypesAndContinue: function (json) {
             for (var j = 0; j < json.results.bindings.length; j++) {
                 var binding = json.results.bindings[j];
@@ -139,11 +150,11 @@ var SparqlFace = function() {
         
         },
         findLabel: function (uri) {
-            uri = this.stripBrackets(uri);
+            uri = UriTools.stripBrackets(uri);
             var query = "SELECT ?label WHERE { <" + uri + "> <http://www.w3.org/2000/01/rdf-schema#label> ?label . }";
             return new Promise(function (resolve, reject) {
-                SparqlFace.query(query, function (json) {
-                    if (json.results.bindings.length <= 0) resolve(SparqlFace.nameFromUri(uri));
+                internal.query(query, function (json) {
+                    if (json.results.bindings.length <= 0) resolve(UriTools.nameFromUri(uri));
                     else {
                         var binding = json.results.bindings[0];
                         var label = binding["label"].value;
@@ -272,8 +283,10 @@ var SparqlFace = function() {
                 var object = Object.create(Node);
                 var objUri = binding["a"].value;
                 var name = binding["label"].value;
-                object.init(objUri, name, URIS.object);
-                results.push(object);
+                if(this.model.getNodeByUri(objUri) == null) {
+                    object.init(objUri, name, URIS.object);
+                    results.push(object);
+                }
             }
         
             //this.relatedCallback(results);
@@ -301,35 +314,37 @@ var SparqlFace = function() {
             //this.runQuery(query, "Getting graphs failed.", function(json){callback(SparqlFace.getAllBindings(json, "graph"))})
         },
         textSearchListener: function (msg, data) {
-            this.textSearch(data.text, data.type, data.callback);
+            this.textSearch(data.searchFor, data.type, data.callback);
         },
         textSearch: function (text, type, callback) {
-            if (this.textSearchRuns >= 0) return null;
+            //if (textSearchRuns >= 0) return null;
         
             this.textSearchCallback = callback;
-            var searchQuery = "SELECT ?a ?label WHERE " +
+            var searchQuery = "SELECT DISTINCT ?a ?label WHERE " +
                 "{ ?a <http://www.w3.org/2000/01/rdf-schema#label> ?label ." +
                 "  ?a " + URIS.rKnownTypePredicate + " " + type + " . " +
-                " FILTER(contains(LCASE(?a), LCASE(\"" + text + "\")) || contains(LCASE(?label), LCASE(\"" + text + "\"))) } LIMIT " + RSettings.suggestionsLimit;
+                " FILTER(contains(LCASE(?a), LCASE(\"" + text + "\")) || contains(LCASE(?label), LCASE(\"" + text + "\"))) } LIMIT " + AppSettings.suggestionsLimit;
         
             var query = this.queryService.createQuery();
             var externalQuery = this.externalService.createQuery();
-            this.textSearchRuns = 0;
+            textSearchRuns = 0;
+            this.objects = [];
             query.query(searchQuery, {
                 failure: function () {
-                    alert("Search failed - query failure")
+                    incrementTextSearchCounter();
+                    alert("Search failed - query failure");
                 },
                 success: this.processTextSearch.bind(this)
             });
             externalQuery.query(searchQuery, {
                 failure: function () {
-                    alert("Search failed - external query failure")
+                    incrementTextSearchCounter();
+                    alert("Search failed - external query failure");
                 },
                 success: this.processTextSearch.bind(this)
             });
         },
         processTextSearch: function (json) {
-            if (this.textSearchRuns == 0) this.objects = [];
             for (var j = 0; j < json.results.bindings.length; j++) {
                 var binding = json.results.bindings[j];
                 var object = Object.create(Node);
@@ -338,10 +353,10 @@ var SparqlFace = function() {
                 object.init(objUri, objName, null);
                 this.objects.push(object);
             }
-            if (this.textSearchRuns == 1) this.textSearchCallback(this.objects, true);
-            else this.textSearchCallback(this.objects, false);
-            this.textSearchRuns++;
-            if (this.textSearchRuns > 1) this.textSearchRuns = -1;
+            //if (textSearchRuns == 1) this.textSearchCallback(this.objects, true);
+            //else if(textSearchRuns == 0) this.textSearchCallback(this.objects, false);
+            this.textSearchCallback(this.objects, true);
+            incrementTextSearchCounter();
         },
         runQuery: function (searchQuery, failureMessage, successCallback) {
             var query = this.queryService.createQuery();
@@ -367,18 +382,19 @@ var SparqlFace = function() {
                 "UNION {" + b + " ?pred1 ?c. ?c ?pred2 ?a.}" +
                 "?a " + URIS.rKnownTypePredicate + " " + URIS.object + " . " +
                 "?a <http://www.w3.org/2000/01/rdf-schema#label> ?label .} " +
-                "LIMIT" + RSettings.suggestionsLimit;
+                "LIMIT" + AppSettings.suggestionsLimit;
             this.runQuery(searchQuery, "Getting related nodes failed - query failure", this.processRelatedNodes.bind(this));
         },
+        clearGraph: function clearGraph(graph, callback) {
+            var updateQuery = "CLEAR GRAPH <" + graph + ">";
+    
+            $.get("server/sesame-proxy.php?token=" + this.userToken + "&query=" + encodeURIComponent(updateQuery), null, callback);
+        },
+        justClear: function justClear(graph) {
+            this.clearGraph(graph, this.getGraphs.bind(this));
+        },
         clearThenLoad: function () {
-            var updateQuery = "CLEAR GRAPH <" + this.currentGraph + ">";
-        
-            $.get("server/sesame-proxy.php?token=" + this.userToken + "&query=" + encodeURIComponent(updateQuery), null, this.runLoadQuery.bind(this));
-        
-            /*
-             var query = this.updateService.createQuery();
-             query.query(updateQuery, {failure: function(){alert("Saving graph failed - query failure")},
-             success: this.runLoadQuery.bind(this)});*/
+            this.clearGraph(this.currentGraph, this.runLoadQuery.bind(this));
         },
         runLoadQuery: function () {
             var updateQuery = "LOAD <http://localhost/rknown/server/graphs/test.ttl> INTO GRAPH <" + this.currentGraph + ">"
@@ -396,14 +412,14 @@ var SparqlFace = function() {
             this.builders = [];
         },
         findLinksBetween: function (a, b) {
-            for (var i = 1; i < RSettings.maxPathLength; i++) {
+            for (var i = 1; i < AppSettings.maxPathLength; i++) {
                 var builder = Object.create(PathBuilder);
                 this.builders.push(builder);
-                builder.init(a, b, i, i + 1);
+                builder.init(a, b, i, i + 1, this);
                 for (var j = 1; j <= i; j++) {
                     var builder = Object.create(PathBuilder);
                     this.builders.push(builder);
-                    builder.init(a, b, i, j);
+                    builder.init(a, b, i, j, this);
                 }
             }
         
@@ -429,14 +445,14 @@ var SparqlFace = function() {
             PS.publish(M.modelChanged);
         },
         putRelatedNode: function (msg, data) {
-            var relatedNode = data.draggedNode;
+            var relatedNode = data.placedNode;
             var location = data.location;
             relatedNode.x = location[0];
             relatedNode.y = location[1];
             this.model.addNode(relatedNode);
             this.loadLiteralsForObject(relatedNode);
         
-            if (this.view.learningStateSet()) {
+            if (MS.getInstance().isLearning()) {
                 this.initLinkFinding();
                 for (var i = 0; i < this.model.nodes.length - 1; i++) {
                     this.findLinksBetween(this.model.nodes[i], relatedNode);
@@ -447,7 +463,7 @@ var SparqlFace = function() {
         },
     
         save: function (graphName) {
-            this.model.name = RSettings.graphUriBase + this.userEmail + "/" + encodeURIComponent(graphName);
+            this.model.name = AppSettings.graphUriBase + this.userEmail + "/" + encodeURIComponent(graphName);
             this.currentGraph = this.model.name;
             this.graphSavedCallback = this.getGraphs.bind(this);
             this.saveGraph(this.model.getRdf());
@@ -481,6 +497,9 @@ var SparqlFace = function() {
             PS.subscribe(M.btnGraphLoad, function(msg, graphUri) {
                 internal.loadGraph(graphUri);
             });
+            PS.subscribe(M.btnGraphDelete, function(msg, graph) {
+                internal.justClear(graph.uri);
+            });
         },
         createUriFromName: function(name) {
             return internal.createUriFromName(name);
@@ -496,6 +515,9 @@ var SparqlFace = function() {
         },
         getAllGraphs: function() {
             internal.getGraphs();
+        },
+        newGraph: function() {
+            internal.newGraph();
         }
     };
 };

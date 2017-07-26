@@ -10,15 +10,22 @@ var d3 = require('d3');
 
 var TypeSelection = function(typeInputFieldId, modelState) {
     var typeInputField = typeInputFieldId,
+        isVisible = false,
+        self,
         ms = modelState,
         
         showTypeSelection = function (visible) {
             //this.justShownSuggestions = true;
+            isVisible = visible;
             d3.select('#typeSelection').style("display", visible ? "block" : "none");
-            $(typeInputField).val("");
-            $(typeInputField).focus();
-            //utils.moveToMousePos(d3.select('#typeSelection'));
-            utils.moveNextTo(ms.getSelNodeElement(), '#typeSelection');
+            if(visible) {
+                $(typeInputField).val("");
+                $(typeInputField).focus();
+                utils.moveNextTo(ms.getSelNodeElement(), '#typeSelection');
+            }
+            else {
+                PS.publish(M.windowClosed, self);
+            }
         };
         
         init = function() {
@@ -44,6 +51,9 @@ var TypeSelection = function(typeInputFieldId, modelState) {
         return {
             show: function(visible) {
                 showTypeSelection(visible);
+            },
+            visible: function() {
+                return isVisible;
             }
         };
 };

@@ -3,6 +3,7 @@
  */
 var uriTool = require('./Uri.js');
 var URIS = require('../vocab/uris.js');
+var Point = require('./Point');
 
 
 var Link = {
@@ -19,7 +20,11 @@ var Link = {
         this.id = -1;
         this.uri = uriTool.stripBrackets(uri);
         this.name = name;
-        if(typeof name.then !== 'undefined') name.then(this.setName.bind(this));
+        //if(typeof name.then !== 'undefined') name.then(this.setName.bind(this));
+        Promise.resolve(name).then(this.setName.bind(this));
+        if(typeof name.then !== 'undefined') {
+            this.name = uriTool.nameFromUri(this.uri);
+        }
     },
     triplify: function() {
         var triples = Triple.create(this.start.uri, this.uri, this.end.uri).str();
@@ -63,10 +68,10 @@ var Link = {
     },
 
     getMiddlePoint: function() {
-        lineVec = new Point();
+        var lineVec = new Point();
         lineVec.x = this.end.x - this.start.x;
         lineVec.y = this.end.y - this.start.y;
-        middle = new Point();
+        var middle = new Point();
         middle.x = this.start.x + 0.5*lineVec.x;
         middle.y = this.start.y + 0.5*lineVec.y;
         return middle;

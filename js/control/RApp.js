@@ -47,6 +47,9 @@ var RApp = function(_userMail, _userToken) {
             else if (this.graphFromUrl != null) {
                 this.loadGraphFromUrl();
             }
+            else {
+                sFace.newGraph();
+            }
         }
     }
     

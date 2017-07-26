@@ -12,7 +12,9 @@ var RSettings = {
     suggestionsLimit: 10,
     defaultNodeColor: "#ddd",
     suggestionWaitTime: 200,
-    nodeLabelMargin: 5
+    nodeLabelMargin: 5,
+    layout_linkDistance: 70,
+    layout_charge: -200
 };
 
 module.exports = RSettings;

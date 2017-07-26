@@ -7,6 +7,7 @@ var RType = {
     init: function(uri, label, color) {
         this.uri = uri;
         this.label = label;
+        this.name = label;
         this.color = color;
     },
     setColor: function(color) {

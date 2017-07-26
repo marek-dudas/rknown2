@@ -47,11 +47,12 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
     function sendSuggestionsToView(objects, isExtra) {
         var areRelevant = false;
         var currentTextInput = $(valElement).val();
-        if (currentTextInput == "") return null;
-        for (var i = 0; i < objects.length; i++) {
-            if (objects[i].uri.includes(currentTextInput) || objects[i].name.includes(currentTextInput)) areRelevant = true;
+        if (currentTextInput != "") {
+            for (var i = 0; i < objects.length; i++) {
+                if (objects[i].uri.includes(currentTextInput) || objects[i].name.includes(currentTextInput)) areRelevant = true;
+            }
         }
-        if (areRelevant) {
+        if (areRelevant || objects.length == 0) {
             suggestionsViewCallback(objects, isExtra);
             //PS.publish(publishMessage, {objects: objects, isExtra: isExtra});
         }
@@ -60,9 +61,11 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
     function searchForTypeSuggestions() {
         var userInput = $(valElement).val();
         var suggestedTypes = [];
-        for (var i = 0; i < model.types.length; i++) {
-            var type = model.types[i];
-            if (type.label.includes(userInput)) suggestedTypes.push(type);
+        if(userInput != "") {
+            for (var i = 0; i < model.types.length; i++) {
+                var type = model.types[i];
+                if (type.label.includes(userInput)) suggestedTypes.push(type);
+            }
         }
         sendSuggestionsToView(suggestedTypes, false);
         //PS.publish(publishMessage, {objects: suggestedTypes, isExtra: false});

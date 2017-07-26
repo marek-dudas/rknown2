@@ -3,6 +3,7 @@
  */
 var Messages = {
     modelChanged: "model.changed",
+    nodelinkChanged: "model.nodelink.changed",
     modelReset: "model.reset",
     
     relNodesChanged: "model.related.changed",
@@ -23,6 +24,7 @@ var Messages = {
     btnGraphLoad: "button.graph.load.click",
     btnGraphShare: "button.graph.share.click",
     btnGraphSave: "button.graph.save.click",
+    btnGraphDelete: "button.graph.delete.click",
     graphListChanged: "graphlist.changed",
     
     btnNodeLiteral: "button.node.literal.click",
@@ -62,7 +64,9 @@ var Messages = {
     
     linkCreated: "relation.link.created",
     
-    nodeSearchEnter: "input.search.node.enter"
+    nodeSearchEnter: "input.search.node.enter",
+    
+    windowClosed: "window.closed"
 };
 
 module.exports = Messages;

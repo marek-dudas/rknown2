@@ -10,9 +10,13 @@ var Valuation = require('../model/Valuation');
 
 var LiteralSelection = function(modelState) {
     var ms = modelState;
+    var self;
+    var isVisible;
     var hide = function() {
+        isVisible = false;
         d3.select('#literalInput')
             .style("display", "none");
+        PS.publish(M.windowClosed, self);
     };
     var init = function () {
         $('#literalPredicateField').keyup(function (e) {
@@ -28,8 +32,9 @@ var LiteralSelection = function(modelState) {
     
     init();
     
-    return {
+    self = {
         showLiteralInput: function (node, valuation) {
+            isVisible = true;
             d3.select('#literalInput')
                 .style("display", "block");
                 //.style("left", node.x + "px")
@@ -49,8 +54,13 @@ var LiteralSelection = function(modelState) {
         },
         hide: function() {
             hide();
+        },
+        visible: function() {
+            return isVisible;
         }
     };
+    
+    return self;
 };
 
 module.exports = LiteralSelection;

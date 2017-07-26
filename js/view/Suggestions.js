@@ -8,19 +8,25 @@ var M = require('../vocab/messages');
 
 //TODO expects #suggestionTable in config suggestionsElement
 var Suggestions = function(config) {
-    var suggestions = d3.select(config.suggestionsElement)
-        .selectAll("tr");
+    var suggestionsElement = d3.select(config.suggestionsElement);
     var relatedInputField = config.inputFieldId;
+    var parentWindow = config.parent || null;
+    var getSuggestionsD3 = function() {
+        return suggestionsElement.selectAll("tr");
+    };
+    var hide = function() {
+        d3.select("#suggestionsWidget").style("display", "none");
+    };
     
     var internal = {
         updateSuggestions: function (data, isExtra) {
             //this.suggestions.selectAll('tr').remove();
             d3.select('.no-records-found').remove();
-            suggestions = suggestions.data(data, function (d) {
+            var suggestions = getSuggestionsD3().data(data, function (d) {
                 if (d !== undefined) return d.uri;
                 else return 0;
             });
-            var suggestionsEnter = this.suggestions.enter().append("tr")
+            var suggestionsEnter = suggestions.enter().append("tr")
                 .on("click", function (d) {
                     //RKnown.control.addEntity(d.uri, d.name);
                     d3.select("#suggestionsWidget").style("display", "none");
@@ -42,7 +48,7 @@ var Suggestions = function(config) {
             });
             suggestions.exit().remove();
             if (data.length > 0 || !isExtra) d3.select("#suggestionsWidget").style("display", "block");
-            else d3.select("#suggestionsWidget").style("display", "none");
+            else hide();
             if (isExtra) d3.select("#searchingMore").style("display", "none");
             else d3.select("#searchingMore").style("display", "block");
             //$("#suggestionTable").bootstrapTable();
@@ -52,7 +58,7 @@ var Suggestions = function(config) {
             //this.suggestions.selectAll('tr').remove();
             if (data.length > 0) {
                 d3.select('.no-records-found').remove();
-                suggestions = suggestions.data(data, function (d) {
+                var suggestions = getSuggestionsD3().data(data, function (d) {
                     if (d !== undefined) return d.uri;
                     else return 0;
                 });
@@ -75,7 +81,7 @@ var Suggestions = function(config) {
                 suggestions.exit().remove();
                 d3.select("#suggestionsWidget").style("display", "block");
             }
-            else d3.select("#suggestionsWidget").style("display", "none");
+            else hide();
             d3.select("#searchingMore").style("display", "none");
             //$("#suggestionTable").bootstrapTable();
         },
@@ -83,7 +89,7 @@ var Suggestions = function(config) {
         updatePropSuggestions: function (data) {
             //this.suggestions.selectAll('tr').remove();
             d3.select('.no-records-found').remove();
-            suggestions = suggestions.data(data, function (d) {
+            var suggestions = getSuggestionsD3().data(data, function (d) {
                 if (d !== undefined) return d.uri;
                 else return 0;
             });
@@ -114,22 +120,36 @@ var Suggestions = function(config) {
                 });
             suggestions.exit().remove();
             if (data.length > 0) d3.select("#suggestionsWidget").style("display", "block");
-            else d3.select("#suggestionsWidget").style("display", "none");
+            else hide();
             d3.select("#searchingMore").style("display", "none");
             //$("#suggestionTable").bootstrapTable();
         },
         
         setLocation: function(inputFieldId) {
-            d3.select("#suggestionsWidget").style("left", $(inputFieldId).offset().left + "px")
-                .style("top", ($(inputFieldId).offset().top + $(inputFieldId).outerHeight()) + "px");
+            if(!parentWindow || parentWindow.visible()) {
+                d3.select("#suggestionsWidget").style("left", $(inputFieldId).offset().left + "px")
+                    .style("top", ($(inputFieldId).offset().top + $(inputFieldId).outerHeight()) + "px");
+            }
+            else {
+                hide();
+            }
+        },
+        
+        subscribe: function subscribe() {
+            PS.subscribe(M.windowClosed, function(msg, data) {
+                if(data == parentWindow) hide();
+            });
         }
     
-};
+    };
+    
+    internal.subscribe();
     
     return {
-        showTypes: function(data) {internal.setLocation(relatedInputField); internal.updateTypeSuggestions(data);},
-        showEntities: function(data) {internal.setLocation(relatedInputField); internal.updateSuggestions(data.data, data.isExtra)},
-        showProperties: function(data) {internal.setLocation(relatedInputField); internal.updatePropSuggestions(data)}
+        showTypes: function(data) {internal.updateTypeSuggestions(data); internal.setLocation(relatedInputField); },
+        showEntities: function(data, isExtra) {internal.updateSuggestions(data, isExtra); internal.setLocation(relatedInputField); },
+        showProperties: function(data) {internal.updatePropSuggestions(data); internal.setLocation(relatedInputField); },
+        hide: hide
     }
 };
 

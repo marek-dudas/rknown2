@@ -10,24 +10,36 @@ var Utils = require('./ViewUtils');
 
 var EntitySelection = function EntitySelection(inputFieldId, modelState) {
     var inputFieldId = inputFieldId,
-        ms = modelState;
+        ms = modelState,
+        isVisible = false,
+        self,
+        show = function show(visible) {
+            isVisible = visible;
+            d3.select('#newEntityWidget').style("display", visible ? "block" : "none");
+            if(visible==false) PS.publish(M.windowClosed, self);
+        };
     
     var internal = {
-        showEntityWidget: function (visible) {
-            d3.select('#newEntityWidget').style("display", visible ? "block" : "none");
+        showEntityWidget: function (visible, location) {
+            show(visible);
             if (visible) {
                 //this.justShownSuggestions = true;
                 $(inputFieldId).focus();
                 $(inputFieldId).val("");
                 //Utils.moveToMousePos(d3.select('#newEntityWidget'));
-                Utils.moveNextTo(ms.getSelNodeElement(), '#newEntityWidget');
+                if(location) {
+                    Utils.moveElement('#newEntityWidget', location);
+                }
+                else {
+                    Utils.moveNextTo(ms.getSelNodeElement(), '#newEntityWidget');
+                }
             }
         },
         init: function() {
             $(inputFieldId).keyup(function (e) {
                 if (e.keyCode == 13) {
                     PS.publish(M.entityInputEnter, $(this).val());
-                    this.showEntityWidget(false);
+                    show(false);
                 }
                 else {
                     if ($(this).val() != "") {
@@ -38,7 +50,8 @@ var EntitySelection = function EntitySelection(inputFieldId, modelState) {
                 }
             });
             PS.subscribe(M.canvasDblClick, function(msg,data){
-                internal.showEntityWidget(true);
+                var location = {x:data.windowMouse[0], y:data.windowMouse[1]};
+                internal.showEntityWidget(true, location);
             });
             PS.subscribe(M.suggestionEntitySelect, function(msg, data){
                 internal.showEntityWidget(false);
@@ -50,14 +63,18 @@ var EntitySelection = function EntitySelection(inputFieldId, modelState) {
     
     internal.init();
     
-    return {
+    self = {
         show: function() {
             internal.showEntityWidget(true);
         },
         hide: function() {
             internal.showEntityWidget(false);
+        },
+        visible: function() {
+            return isVisible;
         }
     };
+    return self;
 };
 
 module.exports = EntitySelection;
