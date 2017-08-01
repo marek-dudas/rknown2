@@ -6,7 +6,7 @@
 
 var UriTools = require('../model/Uri.js');
 var SPARQL = require('./sparql.js');
-var ConnSettings = require('../settings/connectionSettings.js');
+//var ConnSettings = require('../settings/connectionSettings.js');
 var AppSettings = require('../settings/appSettings');
 var URIS = require('../vocab/uris.js');
 var RType = require('../model/RType.js');
@@ -328,7 +328,7 @@ var SparqlFace = function() {
             var query = this.queryService.createQuery();
             var externalQuery = this.externalService.createQuery();
             textSearchRuns = 0;
-            this.objects = [];
+            //this.objects = [];
             query.query(searchQuery, {
                 failure: function () {
                     incrementTextSearchCounter();
@@ -345,17 +345,18 @@ var SparqlFace = function() {
             });
         },
         processTextSearch: function (json) {
+             var objects = [];
             for (var j = 0; j < json.results.bindings.length; j++) {
                 var binding = json.results.bindings[j];
                 var object = Object.create(Node);
                 var objUri = binding["a"].value;
                 var objName = binding["label"].value;
                 object.init(objUri, objName, null);
-                this.objects.push(object);
+                objects.push(object);
             }
             //if (textSearchRuns == 1) this.textSearchCallback(this.objects, true);
             //else if(textSearchRuns == 0) this.textSearchCallback(this.objects, false);
-            this.textSearchCallback(this.objects, true);
+            this.textSearchCallback(objects);
             incrementTextSearchCounter();
         },
         runQuery: function (searchQuery, failureMessage, successCallback) {
@@ -397,7 +398,7 @@ var SparqlFace = function() {
             this.clearGraph(this.currentGraph, this.runLoadQuery.bind(this));
         },
         runLoadQuery: function () {
-            var updateQuery = "LOAD <http://localhost/rknown/server/graphs/test.ttl> INTO GRAPH <" + this.currentGraph + ">"
+            var updateQuery = "LOAD <"+ConnSettings.tempGraphUrl+"> INTO GRAPH <" + this.currentGraph + ">";
         
             $.get("server/sesame-proxy.php?query=" + encodeURIComponent(updateQuery) + "&token=" + this.userToken, null, this.graphSavedCallback);
         

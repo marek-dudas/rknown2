@@ -66,7 +66,8 @@ var Messages = {
     
     nodeSearchEnter: "input.search.node.enter",
     
-    windowClosed: "window.closed"
+    windowClosed: "window.closed",
+    windowOpened: "window.opened"
 };
 
 module.exports = Messages;

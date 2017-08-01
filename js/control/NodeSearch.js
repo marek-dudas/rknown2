@@ -19,7 +19,10 @@ var NodeSearch = function NodeSearch() {
         initAll: function() {
             PS.subscribe(M.nodeSearchEnter, function(msg, value) {
                 highlightSearch(value);
-            })
+            });
+            PS.subscribe(M.modelReset, function(msg, _model) {
+                model = _model;
+            });
         }
     };
 };

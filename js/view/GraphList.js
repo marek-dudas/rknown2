@@ -20,7 +20,7 @@ var GraphList = function() {
         
         getGraphsD3 = function() {
             return graphsElement.selectAll("p");
-        }
+        },
         
         init = function init() {
             d3.select('#btnConfirmDelete').on('click', deletionConfirmed);

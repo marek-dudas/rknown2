@@ -51,6 +51,7 @@ var LiteralSelection = function(modelState) {
                 $('#literalValue').val("");
                 $('#literalPredicateField').focus();
             }
+            PS.publish(M.windowOpened, self);
         },
         hide: function() {
             hide();

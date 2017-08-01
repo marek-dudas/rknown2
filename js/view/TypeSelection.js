@@ -22,6 +22,7 @@ var TypeSelection = function(typeInputFieldId, modelState) {
                 $(typeInputField).val("");
                 $(typeInputField).focus();
                 utils.moveNextTo(ms.getSelNodeElement(), '#typeSelection');
+                PS.publish(M.windowOpened, self);
             }
             else {
                 PS.publish(M.windowClosed, self);

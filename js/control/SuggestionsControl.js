@@ -15,6 +15,23 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
     var valElement = searchValueElement;
     var timeControl;
     var model;
+    var suggestions = [];
+    
+    function NotInSuggestions(object) {
+        var isThere = false;
+        suggestions.forEach(function (s) {
+            if (s.uri == object.uri) isThere = true;
+        });
+        
+        return !isThere;
+    }
+    
+    function IsRelevantFor(object, inputString) {
+        if(inputString == "") return false;
+        var uppercasedInput = inputString.toUpperCase();
+        if(object.uri.toUpperCase().includes(uppercasedInput) || object.name.toUpperCase().includes(uppercasedInput)) return true;
+        else return false;
+    }
     
     function SuggestionsTimeControl(searchCallback) {
         
@@ -44,18 +61,25 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
         };
     }
     
-    function sendSuggestionsToView(objects, isExtra) {
-        var areRelevant = false;
+    function sendSuggestionsToView(objects) {
         var currentTextInput = $(valElement).val();
         if (currentTextInput != "") {
             for (var i = 0; i < objects.length; i++) {
-                if (objects[i].uri.includes(currentTextInput) || objects[i].name.includes(currentTextInput)) areRelevant = true;
+                if(IsRelevantFor(objects[i], currentTextInput) && NotInSuggestions(objects[i])) suggestions.push(objects[i]);
             }
         }
-        if (areRelevant || objects.length == 0) {
-            suggestionsViewCallback(objects, isExtra);
-            //PS.publish(publishMessage, {objects: objects, isExtra: isExtra});
+        for (var j = 0; j < suggestions.length; j++) {
+            if(!IsRelevantFor(suggestions[j], currentTextInput)) {
+                suggestions.splice(j, 1);
+                j--;
+            }
         }
+        suggestionsViewCallback(suggestions);
+        /*
+        if (areRelevant || objects.length == 0) {
+            suggestionsViewCallback(objects);
+            //PS.publish(publishMessage, {objects: objects, isExtra: isExtra});
+        }*/
     }
     
     function searchForTypeSuggestions() {
@@ -67,7 +91,7 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
                 if (type.label.includes(userInput)) suggestedTypes.push(type);
             }
         }
-        sendSuggestionsToView(suggestedTypes, false);
+        sendSuggestionsToView(suggestedTypes);
         //PS.publish(publishMessage, {objects: suggestedTypes, isExtra: false});
     }
     

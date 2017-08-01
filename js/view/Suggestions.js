@@ -19,7 +19,7 @@ var Suggestions = function(config) {
     };
     
     var internal = {
-        updateSuggestions: function (data, isExtra) {
+        updateSuggestions: function (data) {
             //this.suggestions.selectAll('tr').remove();
             d3.select('.no-records-found').remove();
             var suggestions = getSuggestionsD3().data(data, function (d) {
@@ -47,11 +47,12 @@ var Suggestions = function(config) {
                 d.getComment();
             });
             suggestions.exit().remove();
-            if (data.length > 0 || !isExtra) d3.select("#suggestionsWidget").style("display", "block");
+            if (data.length > 0) d3.select("#suggestionsWidget").style("display", "block");
             else hide();
-            if (isExtra) d3.select("#searchingMore").style("display", "none");
-            else d3.select("#searchingMore").style("display", "block");
+            //if (isExtra) d3.select("#searchingMore").style("display", "none");
+            //else d3.select("#searchingMore").style("display", "block");
             //$("#suggestionTable").bootstrapTable();
+            d3.select("#searchingMore").style("display", "none");
         },
     
         updateTypeSuggestions: function (data) {
@@ -126,7 +127,7 @@ var Suggestions = function(config) {
         },
         
         setLocation: function(inputFieldId) {
-            if(!parentWindow || parentWindow.visible()) {
+            if(parentWindow ==null || parentWindow.visible()) {
                 d3.select("#suggestionsWidget").style("left", $(inputFieldId).offset().left + "px")
                     .style("top", ($(inputFieldId).offset().top + $(inputFieldId).outerHeight()) + "px");
             }

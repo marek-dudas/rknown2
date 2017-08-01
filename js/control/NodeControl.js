@@ -4,6 +4,8 @@
 var PS = require('pubsub-js');
 var M = require('../vocab/messages');
 var Node = require('../model/RNode');
+var RType = require('../model/RType');
+var Label = require('../model/Label');
 
 var NodeControl = function NodeControl(_sparqlFace, _ms) {
     var ms = _ms,
@@ -66,7 +68,7 @@ var NodeControl = function NodeControl(_sparqlFace, _ms) {
             addTypeFromName: function(typeName) {
                 if(typeName!="") {
                     var type = Object.create(RType);
-                    type.init(sparqlFace.createUriFromName(typeName), $(this.typeInputFielId).val(), null);
+                    type.init(sparqlFace.createUriFromName(typeName), typeName, null);
                     model.addTypeToNode(ms.getSelectedNode(), type);
                     PS.publish(M.nodePropsChanged, ms.getSelectedNode());
                 }

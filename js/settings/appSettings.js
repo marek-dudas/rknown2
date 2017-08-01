@@ -14,7 +14,8 @@ var RSettings = {
     suggestionWaitTime: 200,
     nodeLabelMargin: 5,
     layout_linkDistance: 70,
-    layout_charge: -200
+    layout_charge: -200,
+    nodeDeselectDist: 100
 };
 
 module.exports = RSettings;

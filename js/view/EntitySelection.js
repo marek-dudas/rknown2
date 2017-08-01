@@ -16,7 +16,12 @@ var EntitySelection = function EntitySelection(inputFieldId, modelState) {
         show = function show(visible) {
             isVisible = visible;
             d3.select('#newEntityWidget').style("display", visible ? "block" : "none");
-            if(visible==false) PS.publish(M.windowClosed, self);
+            if(visible==false) {
+                PS.publish(M.windowClosed, self);
+            }
+            else {
+                PS.publish(M.windowOpened, self);
+            }
         };
     
     var internal = {

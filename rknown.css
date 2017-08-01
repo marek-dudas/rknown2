@@ -30,10 +30,12 @@
 		
 		path.selected {
 			fill: #eee !important;
+			stroke: #d43f3a;
 		}
 		
 		.selected path {
 			fill: #eee !important;
+			stroke: #d43f3a;
 		}
 		
 		.node path:hover {

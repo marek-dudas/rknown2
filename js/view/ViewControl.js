@@ -80,13 +80,21 @@ var ViewControl = function() {
             PS.subscribe(M.relNodesChanged, relNodesView.processNodes);
     
             PS.subscribe(M.nodeMouseOver, function(msg, data) {
-                if(MS.isLinkCreation() == false) {
+                if(MS.isLinkCreation() == false && MS.isModalActive() == false) {
                     nodeProps.showNodeProperties(msg, data);
                     nodeButtons.show({x: data.node.x + 60, y: data.node.y});
                 }
             });
+            
             PS.subscribe(M.canvasMouseDown, hideAllPopups);
-            PS.subscribe(M.selNodeDeleted, hideAllPopups);
+            //PS.subscribe(M.selNodeDeleted, hideAllPopups);
+            
+            PS.subscribe(M.modelChanged, function() {
+               if(MS.getSelectedNode() == null) {
+                   nodeProps.hideNodeProperties();
+                   nodeButtons.hide();
+               }
+            });
             
             PS.subscribe(M.nodePropsChanged, nodeProps.showNodeProperties);
     

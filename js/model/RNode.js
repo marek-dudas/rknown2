@@ -233,6 +233,14 @@ var Node = {
 
     diamondPath: function(width, height) {
         return "M"+(-width/2)+","+(0)+" l "+width/2+","+height/2+" l "+width/2+","+(-height/2)+" l "+(-width/2)+","+(-height/2)+" z";
+    },
+    
+    getPoint: function getPoint() {
+        return Point(this.x, this.y);
+    },
+    
+    distanceFrom: function distanceFrom(somePoint) {
+        return somePoint.distance(this.getPoint());
     }
 
 };

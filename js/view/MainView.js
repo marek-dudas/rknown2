@@ -68,6 +68,7 @@ var RView = function(config) {
             this.rootSvg.on("mousemove", function () {
                 //RKnown.control.mouseMove(d3.mouse(RKnown.view.svg.node()));
                 PS.publish(M.canvasMouseMove, d3.mouse(svg.node()));
+                
             });
             this.rootSvg.on("click", function () {
                     //var mouseDown = RKnown.control.canvasMouseDown.bind(RKnown.control);
@@ -99,6 +100,9 @@ var RView = function(config) {
     
             $('#textSearchField').keyup(function(e){
                 if(e.keyCode == 13) {
+                    PS.publish(M.nodeSearchEnter, ($(this).val()));
+                }
+                else { //just update on any keystroke
                     PS.publish(M.nodeSearchEnter, ($(this).val()));
                 }
             });
@@ -336,7 +340,7 @@ var RView = function(config) {
         
             function showSearchHighlight(selection) {
                 selection.each(function (d) {
-                    if (d.searchHighlight) {
+                    if (d.searchHighlight && d3.select(this).select("circle").empty()) {
                         d3.select(this).append("circle")
                             .attr("cx", 0)
                             .attr("cy", 0)
@@ -345,7 +349,9 @@ var RView = function(config) {
                             .attr("stroke-width", 5)
                             .attr("fill", "none")
                     }
-                    else d3.select(this).select("circle").remove();
+                    else if(!d.searchHighlight){
+                        d3.select(this).selectAll("circle").remove();
+                    }
                 });
             }
         

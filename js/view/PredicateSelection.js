@@ -9,8 +9,11 @@ var d3 = require('d3');
 
 var PredicateSelection = function(inputFieldId, modelState) {
     var inputField = inputFieldId,
-        ms = modelState;
+        ms = modelState,
+        self,
+        isVisible = false;
     var show = function (visible) {
+        isVisible = visible;
         d3.select('#predicateSelection').style("display", visible ? "block" : "none");
         if (visible) {
             //this.justShownSuggestions = true;
@@ -18,6 +21,10 @@ var PredicateSelection = function(inputFieldId, modelState) {
             $(inputField).val("");
             //utils.moveToMousePos(d3.select('#predicateSelection'));
             utils.moveNextTo(ms.getSelNodeElement(), '#predicateSelection');
+            PS.publish(M.windowOpened, self);
+        }
+        else {
+            PS.publish(M.windowClosed, self);
         }
     };
     var init = function() {
@@ -25,6 +32,7 @@ var PredicateSelection = function(inputFieldId, modelState) {
             if(e.keyCode == 13)
             {
                 PS.publish(M.predicateInputEnter, $(inputField).val());
+                show(false);
             }
             else {
                 if($(this).val() != "") {
@@ -39,9 +47,14 @@ var PredicateSelection = function(inputFieldId, modelState) {
     
     init();
     
-    return {
-        show: show
-    }
+    self = {
+        show: show,
+        visible: function visible() {
+            return isVisible;
+        }
+    };
+    
+    return self;
 };
 
 module.exports = PredicateSelection;

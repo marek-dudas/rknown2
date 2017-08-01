@@ -3,6 +3,7 @@ var Label = require('../model/Label');
 var PS = require('pubsub-js');
 var d3 = require('d3');
 var $ = require('jquery-browserify');
+var VU = require('./ViewUtils');
 
 var LabelSelection = function(modelState) {
     var ms = modelState;
@@ -14,12 +15,15 @@ var LabelSelection = function(modelState) {
         isVisible = false;
         PS.publish(M.windowClosed, self);
     };
-    var showLabelInput = function showLabelInput(node, label) {
+    var showLabelInput = function showLabelInput(nodeElement, label) {
         isVisible = true;
-        d3.select('#entityLabelWidget')
-            .style("display", "block")
+        var labelWidget = d3.select('#entityLabelWidget')
+            .style("display", "block");
+        
+        VU.moveNextTo(nodeElement, '#entityLabelWidget');
+        /*
             .style("left", node.x + "px")
-            .style("top", (node.y + 120) + "px");
+            .style("top", (node.y + 120) + "px");*/
         
         if (label != null) {
             $('#entityLabelField').val(label.text);
@@ -34,14 +38,16 @@ var LabelSelection = function(modelState) {
             PS.publish(M.btnSaveLabel, Label($('#entityLabelField').val(), $('#labelLangField').val()));
             hide();
         });
+        
+        PS.publish(M.windowOpened, self);
     };
     
     var init = function init() {
         PS.subscribe(M.btnEditLabel, function(msg, label) {
-            showLabelInput(ms.getSelectedNode(), label);
+            showLabelInput(ms.getSelNodeElement(), label);
         });
         PS.subscribe(M.btnAddLabel, function() {
-            showLabelInput(ms.getSelectedNode(), null);
+            showLabelInput(ms.getSelNodeElement(), null);
         });
     };
     
