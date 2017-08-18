@@ -101,6 +101,9 @@ var ViewControl = function() {
             PS.subscribe(M.btnAddLiteral, function (msg, onNode) {
                 literalSel.showLiteralInput(onNode, null);
             });
+            PS.subscribe(M.btnNodeLiteral, function (msg, onNode) {
+                literalSel.showLiteralInput(null, null);
+            });
             PS.subscribe(M.btnNodeType, function (msg, onNode) {
                 typeSel.show(true);
             });

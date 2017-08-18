@@ -21,13 +21,24 @@ var LiteralSelection = function(modelState) {
     var init = function () {
         $('#literalPredicateField').keyup(function (e) {
             //RKnown.control.literalInputControl.keyPressed();
-            PS.publish(M.literalPredicateInputKeyUp, this.val());
+            if(e.keyCode == 13 || e.keyCode == 27) {
+                PS.publishSync(M.suggestionCancel, self);
+            }
+            else {
+                PS.publish(M.literalPredicateInputKeyUp, $('#literalPredicateField').val());
+            }
         });
         d3.select('#saveLiteral').on('click', function () {
             PS.publish(M.btnSaveLiteral,
                 Valuation($('#literalPredicateField').val(), $('#literalValue').val()));//RKnown.control.addLiteralButtonClick.bind(RKnown.control));
             hide();
         });
+        
+        PS.subscribe(M.suggestionPropertySelect, function(msg, property) {
+            if(isVisible) {
+                $('#literalPredicateField').val(property.name);
+            }
+        })
     };
     
     init();

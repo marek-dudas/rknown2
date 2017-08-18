@@ -2,6 +2,7 @@
  * Created by marek on 22.6.2017.
  */
 var URIS = require('../vocab/uris');
+var Triple = require('./Triple');
 
 var RType = {
     init: function(uri, label, color) {

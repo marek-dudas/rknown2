@@ -142,6 +142,9 @@ var NodeControl = function NodeControl(_sparqlFace, _ms) {
             PS.subscribe(M.btnAddLiteral, function() {
                 selectedPredicate = null;
             });
+            PS.subscribe(M.btnNodeLiteral, function() {
+                selectedPredicate = null;
+            });
             
             
             PS.subscribe(M.suggestionPropertySelect, function(msg,data) {

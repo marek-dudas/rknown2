@@ -15,6 +15,7 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
     var valElement = searchValueElement;
     var timeControl;
     var model;
+    var wantNewSuggestions = true;
     var suggestions = [];
     
     function NotInSuggestions(object) {
@@ -74,7 +75,7 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
                 j--;
             }
         }
-        suggestionsViewCallback(suggestions);
+        if(wantNewSuggestions) suggestionsViewCallback(suggestions);
         /*
         if (areRelevant || objects.length == 0) {
             suggestionsViewCallback(objects);
@@ -97,6 +98,7 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
     
     function searchForSuggestions() {
         //SparqlFace.textSearch($(textSource).val(), type, sendSuggestionsToView); //function(objects){RKnown.view.updateSuggestions(objects);})
+        wantNewSuggestions = true;
         PS.publish(M.suggestionTextSearchRequest, {searchFor: $(valElement).val(), type: elementType, callback: sendSuggestionsToView});
     }
     
@@ -105,6 +107,13 @@ var SuggestionsControl = function SuggestionsControl(suggestedElementType,
     
     PS.subscribe(M.modelReset, function(msg, resetModel) {
         model = resetModel;
+    });
+    
+    PS.subscribe('suggestion.*.selected', function(){
+        wantNewSuggestions = false;
+    });
+    PS.subscribe(M.suggestionCancel, function(){
+        wantNewSuggestions = false;
     });
     
     return {

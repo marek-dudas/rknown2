@@ -4,6 +4,7 @@
 var uriTool = require('./Uri.js');
 var URIS = require('../vocab/uris.js');
 var Point = require('./Point');
+var Triple = require('./Triple');
 
 
 var Link = {

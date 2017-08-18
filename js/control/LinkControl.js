@@ -82,7 +82,7 @@ var LinkControl = function(sparqlFace, modelState) {
             if(this.linkStart == null) {
                 if(this.blankNode == null) {
                     this.blankNode = Object.create(Node);
-                    this.blankNode.init("", "");
+                    this.blankNode.init("http://rknown.com/data/_blankNode", "_blankNode");
                     this.blankNode.visible = false;
                     model.addNode(this.blankNode);
                     ms.setBlankNode(this.blankNode);

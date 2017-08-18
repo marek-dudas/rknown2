@@ -113,11 +113,10 @@ var Suggestions = function(config) {
                     return d.name;
                 })
                 .on("click", function (d) {
-                    RKnown.control.predicateSelected(d);
+                    PS.publish(M.suggestionPropertySelect, d);
                     /*RKnown.control.creationLink.setUri(d.uri);
                      RKnown.control.creationLink.setName(d.name);*/
                     d3.select("#suggestionsWidget").style("display", "none");
-                    RKnown.control.showPredicateSelection(false);
                 });
             suggestions.exit().remove();
             if (data.length > 0) d3.select("#suggestionsWidget").style("display", "block");
@@ -138,6 +137,9 @@ var Suggestions = function(config) {
         
         subscribe: function subscribe() {
             PS.subscribe(M.windowClosed, function(msg, data) {
+                if(data == parentWindow) hide();
+            });
+            PS.subscribe(M.suggestionCancel, function(msg, data) {
                 if(data == parentWindow) hide();
             });
         }

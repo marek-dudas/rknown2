@@ -9,6 +9,7 @@ var RSettings = require('../settings/appSettings');
 var PS = require('pubsub-js');
 var M = require('../vocab/messages');
 var Point = require('../model/Point');
+var Triple = require('./Triple');
 
 function Line(start, end) {
     this.start = start;

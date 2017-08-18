@@ -37,6 +37,7 @@ var Messages = {
     suggestionEntitySelect: "suggestion.entity.selected",
     suggestionPropertySelect: "suggestion.property.selected",
     suggestionTextSearchRequest: "suggestion.search",
+    suggestionCancel: "suggestion.cancel",
     
     relNodePlaced: "node.related.placed",
     
